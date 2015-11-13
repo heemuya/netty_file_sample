@@ -1,33 +1,34 @@
 package son.hee.mun.server;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+
+import org.apache.commons.io.IOUtils;
 
 public class SampleServerHandler extends ChannelInboundHandlerAdapter {
-
-  int totalSize = 0;
 
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) {
     System.out.println("Server channelRead!");
-    byte[] bytes = (byte[]) msg;
 
-    totalSize += bytes.length;
-
-    System.out.println("파일 사이즈 = " + bytes.length);
-
-    String filePath = "C:/Temp/save001.mp4";
+    String filePath = "C:/Temp/sample001.mp4";
     File file = new File(filePath);
-    FileOutputStream fos;
+    InputStream is = null;
     try {
-      fos = new FileOutputStream(file, true);
-      fos.write(bytes);
-      fos.close();
+      is = new FileInputStream(file);
+      byte[] bytes = IOUtils.toByteArray(is);
+      System.out.println("bytes 사이즈 = " + bytes.length);
+
+      ByteBuf byteBuf = Unpooled.wrappedBuffer(bytes);
+      ctx.writeAndFlush(byteBuf);
     } catch (FileNotFoundException e) {
       e.printStackTrace();
     } catch (IOException e) {
